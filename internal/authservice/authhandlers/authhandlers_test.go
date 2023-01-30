@@ -29,6 +29,7 @@ func TestRegistationHandler_ServeHTTP(t *testing.T) {
 		StatusCode  int
 		Body        string
 		ContentType string
+		AuthHeader  string
 	}
 
 	tests := []struct {
@@ -41,7 +42,7 @@ func TestRegistationHandler_ServeHTTP(t *testing.T) {
 			name:    "postitve test #1 200",
 			handler: &RegistationHandler{},
 			args:    args{r: registrationRequest, w: httptest.NewRecorder()},
-			want:    want{StatusCode: http.StatusOK, Body: `{"result": true}`, ContentType: "application/json"},
+			want:    want{StatusCode: http.StatusOK, Body: `{"result": true}`, ContentType: "application/json", AuthHeader: "12345678"},
 		},
 	}
 	for _, tt := range tests {
@@ -50,6 +51,7 @@ func TestRegistationHandler_ServeHTTP(t *testing.T) {
 
 			assert.Equal(t, tt.want.StatusCode, tt.args.w.Code)
 			assert.Equal(t, tt.want.ContentType, tt.args.w.Header().Get("Content-type"))
+			assert.Equal(t, tt.want.AuthHeader, tt.args.w.Header().Get("Authorization"))
 			assert.JSONEq(t, tt.want.Body, tt.args.w.Body.String())
 
 		})
@@ -76,6 +78,7 @@ func TestLoginHandler_ServeHTTP(t *testing.T) {
 		StatusCode  int
 		Body        string
 		ContentType string
+		AuthHeader  string
 	}
 
 	tests := []struct {
@@ -88,7 +91,7 @@ func TestLoginHandler_ServeHTTP(t *testing.T) {
 			name:    "postitve test #1 200",
 			handler: &LoginHandler{},
 			args:    args{r: registrationRequest, w: httptest.NewRecorder()},
-			want:    want{StatusCode: http.StatusOK, Body: `{"token": "12345678"}`, ContentType: "application/json"},
+			want:    want{StatusCode: http.StatusOK, Body: `{"token": "12345678"}`, ContentType: "application/json", AuthHeader: "12345678"},
 		},
 	}
 	for _, tt := range tests {
@@ -97,6 +100,7 @@ func TestLoginHandler_ServeHTTP(t *testing.T) {
 
 			assert.Equal(t, tt.want.StatusCode, tt.args.w.Code)
 			assert.Equal(t, tt.want.ContentType, tt.args.w.Header().Get("Content-type"))
+			assert.Equal(t, tt.want.AuthHeader, tt.args.w.Header().Get("Authorization"))
 			assert.JSONEq(t, tt.want.Body, tt.args.w.Body.String())
 
 		})

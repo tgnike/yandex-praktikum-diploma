@@ -42,6 +42,7 @@ func (rh *RegistationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.Header().Set("Content-type", "application/json")
+	w.Header().Set("Authorization", "12345678")
 	w.WriteHeader(http.StatusOK)
 	w.Write(resBody)
 }
