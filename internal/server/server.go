@@ -11,8 +11,8 @@ type Server struct {
 }
 
 type Users interface {
-	Register(username string, password string) error
-	Login(username string, password string) (string, error)
+	Register(userJSON *models.UserJSON) error
+	Login(userJSON *models.UserJSON) (string, error)
 }
 
 type Orders interface {

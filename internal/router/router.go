@@ -47,9 +47,7 @@ func NewRouter(server *server.Server) chi.Router {
 func handle(handler http.Handler) http.HandlerFunc {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		handler.ServeHTTP(w, r)
-
 	})
 
 }
