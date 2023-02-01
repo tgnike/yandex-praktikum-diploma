@@ -7,7 +7,21 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/tgnike/yandex-praktikum-diploma/internal/models"
 )
+
+type AuthTester struct {
+}
+
+func (at *AuthTester) Register(userJSON *models.UserJSON) (models.Token, error) {
+	return models.Token("12345678"), nil
+}
+func (at *AuthTester) Login(userJSON *models.UserJSON) (models.Token, error) {
+	return models.Token("12345678"), nil
+}
+func (at *AuthTester) CheckAuthToken(token string) (models.UserID, error) {
+	return models.UserID("12345678"), nil
+}
 
 func TestRegistationHandler_ServeHTTP(t *testing.T) {
 
@@ -40,9 +54,9 @@ func TestRegistationHandler_ServeHTTP(t *testing.T) {
 	}{
 		{
 			name:    "postitve test #1 200",
-			handler: &RegistationHandler{},
+			handler: &RegistationHandler{Service: &AuthTester{}},
 			args:    args{r: registrationRequest, w: httptest.NewRecorder()},
-			want:    want{StatusCode: http.StatusOK, Body: `{"result": true}`, ContentType: "application/json", AuthHeader: "12345678"},
+			want:    want{StatusCode: http.StatusOK, Body: `{"result": true}`, ContentType: "application/json", AuthHeader: "Token 12345678"},
 		},
 	}
 	for _, tt := range tests {
@@ -89,9 +103,9 @@ func TestLoginHandler_ServeHTTP(t *testing.T) {
 	}{
 		{
 			name:    "postitve test #1 200",
-			handler: &LoginHandler{},
+			handler: &LoginHandler{Service: &AuthTester{}},
 			args:    args{r: registrationRequest, w: httptest.NewRecorder()},
-			want:    want{StatusCode: http.StatusOK, Body: `{"token": "12345678"}`, ContentType: "application/json", AuthHeader: "12345678"},
+			want:    want{StatusCode: http.StatusOK, Body: `{"token": "12345678"}`, ContentType: "application/json", AuthHeader: "Token 12345678"},
 		},
 	}
 	for _, tt := range tests {

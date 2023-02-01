@@ -1,5 +1,7 @@
 package storage
 
+import "context"
+
 type Storage struct {
 	dB DB
 }
@@ -12,7 +14,8 @@ type DB interface {
 	// PostBalance(user string, balance float32)
 	// PostOrder(order string) error
 	// GetOrdersInformation() ([]string, error)
-	// GetUser(uid string)
+	GetUser(uid string) (string, error)
+	StoreUser(ctx context.Context, username string, password string) (string, error)
 }
 
 const dbTimeout = 5
@@ -21,7 +24,8 @@ func NewStore(db DB) *Storage {
 	return &Storage{dB: db}
 }
 
-func (s *Storage) SaveUser(username string, password string) (string, error) {
+func (s *Storage) CommitUser(username string, password string) (string, error) {
+	s.dB.StoreUser(context.Background(), username, password)
 	return "", nil
 }
 

@@ -1,6 +1,8 @@
 package router
 
 import (
+	"context"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -30,17 +32,56 @@ func NewRouter(server *server.Server) chi.Router {
 		r.Post("/register", handle(&authhandlers.RegistationHandler{Service: server.Users}))
 		r.Post("/login", handle(&authhandlers.LoginHandler{Service: server.Users}))
 
-		r.Post("/orders", handle(&ordershandlers.PostOrderHandler{Service: server.Orders}))
-		r.Get("/orders", handle(&ordershandlers.GetOrdersHandler{Service: server.Orders}))
+		r.With(AuthMiddleware(server.Users)).Route("/orders", func(r chi.Router) {
+			r.Post("/", handle(&ordershandlers.PostOrderHandler{Service: server.Orders}))
+			r.Get("/", handle(&ordershandlers.GetOrdersHandler{Service: server.Orders}))
+		})
 
-		r.Post("/balance/withdraw", mockOk())
-		r.Get("/balance", mockOk())
+		r.With(AuthMiddleware(server.Users)).Route("/balance", func(r chi.Router) {
+			r.Post("/withdraw", mockOk())
+			r.Get("/", mockOk())
+		})
 
-		r.Get("/withdrawals", mockOk())
+		r.With(AuthMiddleware(server.Users)).Route("/withdrawals", func(r chi.Router) {
+			r.Get("/", mockOk())
+		})
 
 	})
 
 	return r
+}
+
+// func AuthMiddleware(next http.Handler) http.Handler {
+// 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+
+// 		token := r.Header.Get("Authorization")
+// 		log.Printf("auth token: %s", token)
+
+// 		next.ServeHTTP(rw, r)
+// 	})
+// }
+
+func AuthMiddleware(auth server.Users) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+			token := r.Header.Get("Authorization")
+			log.Printf("auth token: %s", token)
+
+			userID, err := auth.CheckAuthToken(token)
+
+			if err != nil {
+				http.Error(w, "Invalid token", http.StatusForbidden)
+				return
+			}
+
+			ctx := context.WithValue(r.Context(), server.UserContext, userID)
+
+			// and call the next with our new context
+			r = r.WithContext(ctx)
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
 // Хэлпер

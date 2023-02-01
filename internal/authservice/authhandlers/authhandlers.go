@@ -32,6 +32,14 @@ func (rh *RegistationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	token, err := rh.Service.Register(&userJSON)
+
+	if err != nil {
+		// TODO типы ошибок
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	response := models.RegistrationResponse{Result: true}
 
 	resBody, err := json.Marshal(&response)
@@ -42,7 +50,7 @@ func (rh *RegistationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.Header().Set("Content-type", "application/json")
-	w.Header().Set("Authorization", "12345678")
+	w.Header().Set("Authorization", "Token "+string(token))
 	w.WriteHeader(http.StatusOK)
 	w.Write(resBody)
 }
@@ -68,7 +76,15 @@ func (lh *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := models.LoginResponse{Token: "12345678"}
+	token, err := lh.Service.Login(&userJSON)
+
+	if err != nil {
+		// TODO типы ошибок
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	response := models.LoginResponse{Token: string(token)}
 
 	resBody, err := json.Marshal(&response)
 
@@ -78,6 +94,7 @@ func (lh *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-type", "application/json")
+	w.Header().Set("Authorization", "Token "+string(token))
 	w.WriteHeader(http.StatusOK)
 	w.Write(resBody)
 }

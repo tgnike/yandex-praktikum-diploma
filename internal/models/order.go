@@ -7,3 +7,7 @@ type OrderInformation struct {
 }
 
 type OrderNumber string
+
+func (o *OrderNumber) Check() error {
+	return nil
+}

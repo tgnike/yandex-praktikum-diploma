@@ -1,6 +1,8 @@
 package server
 
 import (
+	"context"
+
 	"github.com/tgnike/yandex-praktikum-diploma/internal/models"
 )
 
@@ -10,13 +12,18 @@ type Server struct {
 	Balance Balance
 }
 
+type UserContextKey string
+
+const UserContext UserContextKey = "usrctxkey"
+
 type Users interface {
-	Register(userJSON *models.UserJSON) error
-	Login(userJSON *models.UserJSON) (string, error)
+	Register(userJSON *models.UserJSON) (models.Token, error)
+	Login(userJSON *models.UserJSON) (models.Token, error)
+	CheckAuthToken(token string) (models.UserID, error)
 }
 
 type Orders interface {
-	PostOrder(order models.OrderNumber) error
+	PostOrder(ctx context.Context, order models.OrderNumber, user models.UserID) error
 	GetOrdersInformation() ([]models.OrderInformation, error)
 }
 
