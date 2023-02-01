@@ -2,6 +2,7 @@ package authservice
 
 import (
 	"errors"
+	"sync"
 
 	"github.com/tgnike/yandex-praktikum-diploma/internal/models"
 )
@@ -17,7 +18,7 @@ type TokenRepository interface {
 }
 
 func New(repository AuthRepository) *UserService {
-	return &UserService{repository: repository}
+	return &UserService{repository: repository, auth: &SimpleTokenRepository{mu: &sync.RWMutex{}, repo: make(map[models.Token]models.UserID)}}
 }
 
 type AuthRepository interface {

@@ -63,7 +63,7 @@ func (s *Storage) StoreUser(ctx context.Context, username string, password strin
 
 	uid := uuid.New().String()
 
-	sqlStatement := `INSERT INTO users (uid,username, password) VALUES ($1, $2, %3)`
+	sqlStatement := `INSERT INTO users (uid, username, password) VALUES ($1, $2, $3)`
 	_, err := s.DB.Exec(ctx, sqlStatement, uid, username, password)
 
 	if err != nil {

@@ -25,8 +25,7 @@ func NewStore(db DB) *Storage {
 }
 
 func (s *Storage) CommitUser(username string, password string) (string, error) {
-	s.dB.StoreUser(context.Background(), username, password)
-	return "", nil
+	return s.dB.StoreUser(context.Background(), username, password)
 }
 
 func (s *Storage) GetUser(username string, password string) (string, error) { return "", nil }
