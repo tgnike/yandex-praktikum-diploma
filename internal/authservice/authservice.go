@@ -1,6 +1,7 @@
 package authservice
 
 import (
+	"context"
 	"errors"
 	"sync"
 
@@ -22,12 +23,12 @@ func New(repository AuthRepository) *UserService {
 }
 
 type AuthRepository interface {
-	StoreUser(username string, password string) (models.UserID, error)
-	GetUserID(username string, password string) (models.UserID, error)
+	CommitUser(ctx context.Context, username string, password string) (models.UserID, error)
+	GetUserID(ctx context.Context, username string, password string) (models.UserID, error)
 }
 
-func (u *UserService) Register(userJSON *models.UserJSON) (models.Token, error) {
-	userID, err := u.repository.StoreUser(userJSON.Login, userJSON.Password)
+func (u *UserService) Register(ctx context.Context, userJSON *models.UserJSON) (models.Token, error) {
+	userID, err := u.repository.CommitUser(ctx, userJSON.Login, userJSON.Password)
 	if err != nil {
 		return "", err
 	}
@@ -37,9 +38,9 @@ func (u *UserService) Register(userJSON *models.UserJSON) (models.Token, error) 
 	return token, nil
 
 }
-func (u *UserService) Login(userJSON *models.UserJSON) (models.Token, error) {
+func (u *UserService) Login(ctx context.Context, userJSON *models.UserJSON) (models.Token, error) {
 
-	userID, err := u.repository.GetUserID(userJSON.Login, userJSON.Password)
+	userID, err := u.repository.GetUserID(ctx, userJSON.Login, userJSON.Password)
 
 	if err != nil {
 		return "", err
@@ -49,6 +50,7 @@ func (u *UserService) Login(userJSON *models.UserJSON) (models.Token, error) {
 }
 
 func (u *UserService) CheckAuthToken(token string) (models.UserID, error) {
+
 	id := u.auth.Get(models.Token(token))
 
 	if id == "" {

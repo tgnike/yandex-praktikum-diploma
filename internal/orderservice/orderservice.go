@@ -2,52 +2,105 @@ package orderservice
 
 import (
 	"context"
+	"log"
+	"time"
 
 	"github.com/tgnike/yandex-praktikum-diploma/internal/models"
-	"github.com/tgnike/yandex-praktikum-diploma/internal/orderservice/ordersrepository"
 )
 
 type OrderService struct {
-	repository *ordersrepository.OrdersRepository
+	repository OrderRepository
+	accruals   Accruals
 }
 
-func New(repository *ordersrepository.OrdersRepository) *OrderService {
-	return &OrderService{repository: repository}
+func New(repository OrderRepository, accruals Accruals) *OrderService {
+	return &OrderService{repository: repository, accruals: accruals}
 }
 
-func (ow *OrderService) PostOrder(ctx context.Context, order models.OrderNumber, user models.UserID) error {
+type OrderRepository interface {
+	GetOrderByNumber(ctx context.Context, order models.OrderNumber, user models.UserID) error
+	CommitOrderNumber(ctx context.Context, order models.OrderNumber, status models.OrderStatus, user models.UserID) error
+	GetUserOrders(ctx context.Context, user models.UserID) ([]models.OrderInformation, error)
+	UpdateOrderAccruals(ctx context.Context, order *models.OrderInformation) error
+}
+
+type Accruals interface {
+	Register(order models.OrderNumber)
+	Check(order models.OrderNumber)
+	GetUpdates() chan *models.OrderInformation
+}
+
+func (os *OrderService) PostOrder(ctx context.Context, order string, user models.UserID) error {
 
 	// Проверка контрольной суммы номера заказа
-	err := order.Check()
+	orderNumber := models.OrderNumber(order)
+	err := orderNumber.Check()
 
 	if err != nil {
 		return err
 	}
 
-	err = checkOrderAlreadyLoaded(ctx, order, user)
+	err = os.repository.CommitOrderNumber(ctx, orderNumber, models.NEW, user)
 
 	if err != nil {
 		return err
 	}
 
-	err = storeOrder(ctx, order, user)
+	os.accruals.Register(orderNumber)
+	// TODO
+	//go os.checkWithTimeout(orderNumber)
+
+	return nil
+
+}
+
+func (os *OrderService) checkWithTimeout(order models.OrderNumber) {
+
+	timer := time.NewTimer(time.Duration(time.Second))
+	<-timer.C
+	os.accruals.Check(order)
+
+}
+
+func (os *OrderService) GetOrdersInformation(ctx context.Context, user models.UserID) ([]models.OrderInformation, error) {
+
+	orders, err := os.repository.GetUserOrders(ctx, user)
 
 	if err != nil {
-		return err
+		return make([]models.OrderInformation, 0), err
 	}
 
-	return nil
-
+	return orders, nil
 }
 
-func storeOrder(ctx context.Context, order models.OrderNumber, user models.UserID) error {
-	return nil
-}
+func (os *OrderService) UpdateAccrualInformation(ctx context.Context) {
 
-func checkOrderAlreadyLoaded(ctx context.Context, order models.OrderNumber, user models.UserID) error {
-	return nil
-}
+	ctxUpdate, cancelUpdate := context.WithCancel(ctx)
 
-func (ow *OrderService) GetOrdersInformation() ([]models.OrderInformation, error) {
-	return make([]models.OrderInformation, 0), nil
+	go func(ctx context.Context, c chan *models.OrderInformation) {
+		for {
+			select {
+			case orderInfo := <-c:
+
+				os.repository.UpdateOrderAccruals(ctx, orderInfo)
+
+				log.Print(orderInfo)
+
+			case <-ctx.Done():
+				return
+
+			}
+
+		}
+	}(ctxUpdate, os.accruals.GetUpdates())
+
+	for {
+		select {
+		case <-ctx.Done():
+			cancelUpdate()
+			return
+		}
+
+	}
+
 }

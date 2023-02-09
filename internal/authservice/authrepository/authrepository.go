@@ -1,23 +1,27 @@
 package authrepository
 
-import "github.com/tgnike/yandex-praktikum-diploma/internal/models"
+import (
+	"context"
+
+	"github.com/tgnike/yandex-praktikum-diploma/internal/models"
+)
 
 type AuthRepository struct {
 	Storage Storage
 }
 
 type Storage interface {
-	CommitUser(username string, password string) (string, error)
-	GetUser(username string, password string) (string, error)
+	CommitUser(ctx context.Context, username string, password string) (string, error)
+	GetUser(ctx context.Context, username string, password string) (string, error)
 }
 
 func New(storage Storage) *AuthRepository {
 	return &AuthRepository{Storage: storage}
 }
 
-func (r *AuthRepository) StoreUser(username string, password string) (models.UserID, error) {
+func (r *AuthRepository) CommitUser(ctx context.Context, username string, password string) (models.UserID, error) {
 
-	id, err := r.Storage.CommitUser(username, password)
+	id, err := r.Storage.CommitUser(ctx, username, password)
 	if err != nil {
 		return "", err
 	}
@@ -25,9 +29,9 @@ func (r *AuthRepository) StoreUser(username string, password string) (models.Use
 	return models.UserID(id), nil
 }
 
-func (r *AuthRepository) GetUserID(username string, password string) (models.UserID, error) {
+func (r *AuthRepository) GetUserID(ctx context.Context, username string, password string) (models.UserID, error) {
 
-	id, err := r.Storage.GetUser(username, password)
+	id, err := r.Storage.GetUser(ctx, username, password)
 	if err != nil {
 		return "", err
 	}

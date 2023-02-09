@@ -2,6 +2,7 @@ package authhandlers
 
 import (
 	"bytes"
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,10 +14,10 @@ import (
 type AuthTester struct {
 }
 
-func (at *AuthTester) Register(userJSON *models.UserJSON) (models.Token, error) {
+func (at *AuthTester) Register(ctx context.Context, userJSON *models.UserJSON) (models.Token, error) {
 	return models.Token("12345678"), nil
 }
-func (at *AuthTester) Login(userJSON *models.UserJSON) (models.Token, error) {
+func (at *AuthTester) Login(ctx context.Context, userJSON *models.UserJSON) (models.Token, error) {
 	return models.Token("12345678"), nil
 }
 func (at *AuthTester) CheckAuthToken(token string) (models.UserID, error) {

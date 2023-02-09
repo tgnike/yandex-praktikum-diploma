@@ -32,7 +32,9 @@ func (rh *RegistationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	token, err := rh.Service.Register(&userJSON)
+	ctx := r.Context()
+
+	token, err := rh.Service.Register(ctx, &userJSON)
 
 	if err != nil {
 		// TODO типы ошибок
@@ -76,7 +78,9 @@ func (lh *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := lh.Service.Login(&userJSON)
+	ctx := r.Context()
+
+	token, err := lh.Service.Login(ctx, &userJSON)
 
 	if err != nil {
 		// TODO типы ошибок

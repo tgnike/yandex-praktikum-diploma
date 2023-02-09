@@ -17,20 +17,21 @@ type UserContextKey string
 const UserContext UserContextKey = "usrctxkey"
 
 type Users interface {
-	Register(userJSON *models.UserJSON) (models.Token, error)
-	Login(userJSON *models.UserJSON) (models.Token, error)
+	Register(ctx context.Context, userJSON *models.UserJSON) (models.Token, error)
+	Login(ctx context.Context, userJSON *models.UserJSON) (models.Token, error)
 	CheckAuthToken(token string) (models.UserID, error)
 }
 
 type Orders interface {
-	PostOrder(ctx context.Context, order models.OrderNumber, user models.UserID) error
-	GetOrdersInformation() ([]models.OrderInformation, error)
+	PostOrder(ctx context.Context, order string, user models.UserID) error
+	GetOrdersInformation(ctx context.Context, user models.UserID) ([]models.OrderInformation, error)
+	UpdateAccrualInformation(ctx context.Context)
 }
 
 type Balance interface {
-	GetBalance() float32
-	WithdrawRequest() error
-	Withdrawals() error
+	GetBalance(ctx context.Context) float32
+	WithdrawRequest(ctx context.Context) error
+	Withdrawals(ctx context.Context) error
 }
 
 func New(users Users, orders Orders, balance Balance) *Server {

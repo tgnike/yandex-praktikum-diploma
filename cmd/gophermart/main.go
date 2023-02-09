@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 	"net/http"
 
 	"github.com/caarlos0/env/v6"
+	"github.com/tgnike/yandex-praktikum-diploma/internal/accruals"
 	"github.com/tgnike/yandex-praktikum-diploma/internal/authservice"
 	"github.com/tgnike/yandex-praktikum-diploma/internal/authservice/authrepository"
 	"github.com/tgnike/yandex-praktikum-diploma/internal/balanceservice"
@@ -34,10 +36,16 @@ func main() {
 		log.Fatal(err)
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	pgx := &postgres.Storage{DataSourceName: cfg.DSN}
 	pgx.Init()
 
-	server := makeServer(pgx)
+	accruals := accruals.New("localhost:8081")
+	go accruals.Start(ctx)
+
+	server := makeServer(ctx, pgx, accruals)
 
 	r := router.NewRouter(server)
 
@@ -46,12 +54,13 @@ func main() {
 
 }
 
-func makeServer(pgx *postgres.Storage) *server.Server {
+func makeServer(ctx context.Context, pgx *postgres.Storage, accruals orderservice.Accruals) *server.Server {
 
 	storage := storage.NewStore(pgx)
 
 	users := authservice.New(authrepository.New(storage))
-	orders := orderservice.New(ordersrepository.New(storage))
+	orders := orderservice.New(ordersrepository.New(storage), accruals)
+	go orders.UpdateAccrualInformation(ctx)
 	balance := balanceservice.New(balancerepository.New(storage))
 
 	return server.New(users, orders, balance)

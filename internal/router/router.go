@@ -2,8 +2,8 @@ package router
 
 import (
 	"context"
-	"log"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -65,10 +65,10 @@ func AuthMiddleware(auth server.Users) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-			token := r.Header.Get("Authorization")
-			log.Printf("auth token: %s", token)
+			tokenFull := r.Header.Get("Authorization")
+			words := strings.Split(tokenFull, " ")
 
-			userID, err := auth.CheckAuthToken(token)
+			userID, err := auth.CheckAuthToken(words[len(words)-1])
 
 			if err != nil {
 				http.Error(w, "Invalid token", http.StatusForbidden)

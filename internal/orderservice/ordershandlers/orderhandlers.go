@@ -45,18 +45,18 @@ func (ph *PostOrderHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	userID, ok := ctx.Value(server.UserContext).(models.UserID)
 	if !ok {
-		http.Error(w, errors.New("empty body").Error(), http.StatusUnauthorized)
+		http.Error(w, errors.New("Unauthorized").Error(), http.StatusUnauthorized)
 		return
 	}
 
-	err = ph.Service.PostOrder(ctx, models.OrderNumber(orderNumber), userID)
+	err = ph.Service.PostOrder(ctx, orderNumber, userID)
 
 	if err != nil {
-		http.Error(w, errors.New("empty body").Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("it works! PostOrderHandler"))
+	w.Write([]byte(""))
 }
 
 type GetOrdersHandler struct {
