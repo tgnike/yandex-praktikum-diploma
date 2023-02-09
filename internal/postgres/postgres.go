@@ -29,7 +29,7 @@ func (s *Storage) Init() {
 
 	s.DB = conn
 
-	s.DB.Exec(context.Background(), `TABLE IF NOT EXISTS users (
+	s.DB.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS users (
 		id int generated always as identity ( cache 10 ) primary key
 		, uid varchar(36) not null unique
 		, username text not null unique
