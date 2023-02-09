@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"errors"
 	"log"
 	"time"
 
@@ -30,15 +29,30 @@ func (s *Storage) Init() {
 
 	s.DB = conn
 
-	err = s.loadMigrations()
+	s.DB.Exec(context.Background(), `TABLE IF NOT EXISTS users (
+		id int generated always as identity ( cache 10 ) primary key
+		, uid varchar(36) not null unique
+		, username text not null unique
+		, password text not null;`)
 
-	if errors.Is(err, migrate.ErrNoChange) {
-		return
-	}
+	s.DB.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS orders (
+    
+			ordernumber varchar(20) not null primary key
+			, useruid varchar(36) not null
+			, balance float not null
+			, status varchar(25) not null
+			 , date TIMESTAMP WITH TIME ZONE;
+		 )`)
 
-	if err != nil {
-		log.Fatalf("error migrations %v", err)
-	}
+	// err = s.loadMigrations()
+
+	// if errors.Is(err, migrate.ErrNoChange) {
+	// 	return
+	// }
+
+	// if err != nil {
+	// 	log.Fatalf("error migrations %v", err)
+	// }
 }
 
 func (s *Storage) loadMigrations() error {
