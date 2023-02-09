@@ -42,7 +42,7 @@ func main() {
 	pgx := &postgres.Storage{DataSourceName: cfg.DSN}
 	pgx.Init()
 
-	accruals := accruals.New("localhost:8081")
+	accruals := accruals.New(cfg.RunAddress)
 	go accruals.Start(ctx)
 
 	server := makeServer(ctx, pgx, accruals)
