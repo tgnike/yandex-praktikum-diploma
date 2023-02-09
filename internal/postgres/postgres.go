@@ -29,20 +29,28 @@ func (s *Storage) Init() {
 
 	s.DB = conn
 
-	s.DB.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS users (
+	_, err = s.DB.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS users (
 		id int generated always as identity ( cache 10 ) primary key
 		, uid varchar(36) not null unique
 		, username text not null unique
-		, password text not null;`)
+		, password text not null )`)
 
-	s.DB.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS orders (
+	if err != nil {
+		log.Panicf("postgres users error %v", err)
+	}
+
+	_, err = s.DB.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS orders (
     
 			ordernumber varchar(20) not null primary key
 			, useruid varchar(36) not null
 			, balance float not null
 			, status varchar(25) not null
-			 , date TIMESTAMP WITH TIME ZONE;
+			 , date TIMESTAMP WITH TIME ZONE
 		 )`)
+
+	if err != nil {
+		log.Panicf("postgres orders error %v", err)
+	}
 
 	// err = s.loadMigrations()
 
