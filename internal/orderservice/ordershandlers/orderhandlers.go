@@ -1,6 +1,7 @@
 package ordershandlers
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"log"
@@ -70,12 +71,26 @@ func (gh *GetOrdersHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	userID, ok := ctx.Value(server.UserContext).(models.UserID)
 	if !ok {
-		http.Error(w, errors.New("empty body").Error(), http.StatusUnauthorized)
+		http.Error(w, errors.New("Unauthorized").Error(), http.StatusUnauthorized)
+		return
+	}
+
+	orders, err := gh.Service.GetOrdersInformation(ctx, userID)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	body, err := json.Marshal(orders)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	log.Print(userID)
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("it works! GetOrdersHandler"))
+	w.Write(body)
 }

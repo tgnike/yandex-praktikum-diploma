@@ -13,7 +13,7 @@ type OrdersRepository struct {
 type Storage interface {
 	GetOrderByNumber(ctx context.Context, order string, userID string) error
 	CommitOrderNumber(ctx context.Context, order string, status string, balance float32, userID string) error
-	GetUserOrders(ctx context.Context, user string) ([]models.OrderInformation, error)
+	GetUserOrders(ctx context.Context, user string, orders models.OrderContainerInterface) error
 	UpdateOrder(ctx context.Context, order string, status string, balance float32) error
 }
 
@@ -32,10 +32,17 @@ func (r *OrdersRepository) CommitOrderNumber(ctx context.Context, order models.O
 
 }
 
-func (r *OrdersRepository) GetUserOrders(ctx context.Context, user models.UserID) ([]models.OrderInformation, error) {
-	return r.storage.GetUserOrders(ctx, string(user))
+func (r *OrdersRepository) GetUserOrders(ctx context.Context, user models.UserID) ([]*models.OrderInformation, error) {
+	orders := &models.OrderContainer{}
+	err := r.storage.GetUserOrders(ctx, string(user), orders)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return orders.Value(), nil
 }
 
-func (r *OrdersRepository) UpdateOrderAccruals(ctx context.Context, order *models.OrderInformation) error {
-	return r.storage.UpdateOrder(ctx, string(order.Order), string(order.Status), order.Balance)
+func (r *OrdersRepository) UpdateOrderAccruals(ctx context.Context, order *models.AccrualInformation) error {
+	return r.storage.UpdateOrder(ctx, string(order.Order), string(order.Status), order.Accrual)
 }

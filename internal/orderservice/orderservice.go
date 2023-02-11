@@ -20,14 +20,14 @@ func New(repository OrderRepository, accruals Accruals) *OrderService {
 type OrderRepository interface {
 	GetOrderByNumber(ctx context.Context, order models.OrderNumber, user models.UserID) error
 	CommitOrderNumber(ctx context.Context, order models.OrderNumber, status models.OrderStatus, user models.UserID) error
-	GetUserOrders(ctx context.Context, user models.UserID) ([]models.OrderInformation, error)
-	UpdateOrderAccruals(ctx context.Context, order *models.OrderInformation) error
+	GetUserOrders(ctx context.Context, user models.UserID) ([]*models.OrderInformation, error)
+	UpdateOrderAccruals(ctx context.Context, order *models.AccrualInformation) error
 }
 
 type Accruals interface {
 	Register(order models.OrderNumber)
 	Check(order models.OrderNumber)
-	GetUpdates() chan *models.OrderInformation
+	GetUpdates() chan *models.AccrualInformation
 }
 
 func (os *OrderService) PostOrder(ctx context.Context, order string, user models.UserID) error {
@@ -46,7 +46,7 @@ func (os *OrderService) PostOrder(ctx context.Context, order string, user models
 		return err
 	}
 
-	os.accruals.Register(orderNumber)
+	os.accruals.Check(orderNumber)
 	// TODO
 	//go os.checkWithTimeout(orderNumber)
 
@@ -62,12 +62,12 @@ func (os *OrderService) checkWithTimeout(order models.OrderNumber) {
 
 }
 
-func (os *OrderService) GetOrdersInformation(ctx context.Context, user models.UserID) ([]models.OrderInformation, error) {
+func (os *OrderService) GetOrdersInformation(ctx context.Context, user models.UserID) ([]*models.OrderInformation, error) {
 
 	orders, err := os.repository.GetUserOrders(ctx, user)
 
 	if err != nil {
-		return make([]models.OrderInformation, 0), err
+		return make([]*models.OrderInformation, 0), err
 	}
 
 	return orders, nil
@@ -77,7 +77,7 @@ func (os *OrderService) UpdateAccrualInformation(ctx context.Context) {
 
 	ctxUpdate, cancelUpdate := context.WithCancel(ctx)
 
-	go func(ctx context.Context, c chan *models.OrderInformation) {
+	go func(ctx context.Context, c chan *models.AccrualInformation) {
 		for {
 			select {
 			case orderInfo := <-c:

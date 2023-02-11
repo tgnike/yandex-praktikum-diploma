@@ -9,6 +9,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/google/uuid"
+	"github.com/tgnike/yandex-praktikum-diploma/internal/models"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -142,6 +143,37 @@ func (s *Storage) UpdateOrder(ctx context.Context, order string, status string, 
 
 }
 
-func (s *Storage) GetUserOrders(ctx context.Context, userID string) error {
+func (s *Storage) GetUserOrders(ctx context.Context, userID string, orders models.OrderContainerInterface) error {
+	sqlStatement := `SELECT ordernumber, balance, status, date from orders where useruid = $1`
+	rows, err := s.DB.Query(ctx, sqlStatement, userID)
+
+	if err != nil {
+		return err
+	}
+
+	for rows.Next() {
+
+		var order string
+		var balance float32
+		var status string
+		var date time.Time
+
+		err := rows.Scan(&order, &balance, &status, &date)
+
+		if err != nil {
+			break
+		}
+
+		orders.Add(order, balance, status, date)
+
+	}
+
+	err = rows.Err()
+
+	if err != nil {
+		return err
+	}
+
 	return nil
+
 }

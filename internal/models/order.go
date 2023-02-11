@@ -2,6 +2,7 @@ package models
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/theplant/luhn"
 )
@@ -10,6 +11,19 @@ type OrderInformation struct {
 	Order   OrderNumber
 	Status  OrderStatus
 	Balance float32
+	Date    time.Time
+}
+
+func NewOrderInfo(order string, balance float32, status string, date time.Time) *OrderInformation {
+
+	return &OrderInformation{Order: OrderNumber(order), Status: OrderStatus(status), Balance: balance, Date: date}
+
+}
+
+type AccrualInformation struct {
+	Order   OrderNumber
+	Status  OrderStatus
+	Accrual float32
 }
 
 type OrderStatus string
@@ -19,6 +33,7 @@ const (
 	INVALID    OrderStatus = "INVALID"
 	PROCESSING OrderStatus = "PROCESSING"
 	PROCESSED  OrderStatus = "PROCESSED"
+	REGISTERED OrderStatus = "REGISTERED"
 )
 
 type OrderNumber string

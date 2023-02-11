@@ -19,7 +19,7 @@ type DB interface {
 	// PostOrder(order string) error
 	// GetOrdersInformation() ([]string, error)
 	GetOrder(ctx context.Context, order string, userID string) error
-	GetUserOrders(ctx context.Context, userID string) error
+	GetUserOrders(ctx context.Context, userID string, orders models.OrderContainerInterface) error
 	CommitOrder(ctx context.Context, order string, status string, balance float32, userID string) error
 	UpdateOrder(ctx context.Context, order string, status string, balance float32) error
 
@@ -49,12 +49,12 @@ func (s *Storage) CommitOrderNumber(ctx context.Context, order string, status st
 	return s.db.CommitOrder(ctx, order, status, balance, userID)
 }
 
-func (s *Storage) GetUserOrders(ctx context.Context, user string) ([]models.OrderInformation, error) {
-	err := s.db.GetUserOrders(ctx, user)
+func (s *Storage) GetUserOrders(ctx context.Context, user string, orders models.OrderContainerInterface) error {
+	err := s.db.GetUserOrders(ctx, user, orders)
 	if err != nil {
-		return nil, nil
+		return err
 	}
-	return nil, nil
+	return nil
 
 }
 

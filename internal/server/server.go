@@ -24,7 +24,7 @@ type Users interface {
 
 type Orders interface {
 	PostOrder(ctx context.Context, order string, user models.UserID) error
-	GetOrdersInformation(ctx context.Context, user models.UserID) ([]models.OrderInformation, error)
+	GetOrdersInformation(ctx context.Context, user models.UserID) ([]*models.OrderInformation, error)
 	UpdateAccrualInformation(ctx context.Context)
 }
 
