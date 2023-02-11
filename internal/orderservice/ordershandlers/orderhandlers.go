@@ -53,7 +53,19 @@ func (ph *PostOrderHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err = ph.Service.PostOrder(ctx, orderNumber, userID)
 
 	if err != nil {
+
+		if errors.Is(err, server.ErrUploadedByOtherUser) {
+			http.Error(w, err.Error(), http.StatusConflict)
+			return
+		}
+
+		if errors.Is(err, server.ErrUploadedByUser) {
+			http.Error(w, err.Error(), http.StatusOK)
+			return
+		}
+
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)

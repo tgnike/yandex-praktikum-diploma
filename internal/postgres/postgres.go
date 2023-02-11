@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"log"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/google/uuid"
 	"github.com/tgnike/yandex-praktikum-diploma/internal/models"
+	"github.com/tgnike/yandex-praktikum-diploma/internal/server"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -117,11 +119,51 @@ func (s *Storage) GetOrder(ctx context.Context, orderNumber string, userID strin
 
 func (s *Storage) CommitOrder(ctx context.Context, order string, status string, balance float32, userID string) error {
 
-	sqlStatement := `INSERT INTO orders (ordernumber, useruid, balance,status,date) VALUES ($1, $2, $3, $4, $5)`
-	_, err := s.DB.Exec(ctx, sqlStatement, order, userID, balance, status, time.Now())
+	tx, err := s.DB.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.ReadCommitted, AccessMode: pgx.ReadWrite})
 
 	if err != nil {
-		// TODO Добавить типы ошибок
+		return err
+	}
+
+	sqlStatementSelect := `SELECT useruid from orders WHERE ordernumber = $1`
+
+	row := tx.QueryRow(ctx, sqlStatementSelect, order)
+
+	var uid string
+
+	err = row.Scan(&uid)
+
+	// Есть ошибка, но и запрос не пустой
+	norows := false
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			norows = true
+		} else {
+			return err
+		}
+	}
+
+	if !norows {
+		if uid == userID {
+			return server.ErrUploadedByUser
+		}
+		if uid != userID {
+			return server.ErrUploadedByOtherUser
+		}
+	}
+
+	sqlStatementInsert := `INSERT INTO orders (ordernumber, useruid, balance,status,date) VALUES ($1, $2, $3, $4, $5)`
+	_, err = tx.Exec(ctx, sqlStatementInsert, order, userID, balance, status, time.Now())
+
+	if err != nil {
+
+		return err
+	}
+
+	err = tx.Commit(ctx)
+
+	if err != nil {
+		tx.Rollback(ctx)
 		return err
 	}
 

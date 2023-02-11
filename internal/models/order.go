@@ -8,10 +8,10 @@ import (
 )
 
 type OrderInformation struct {
-	Order   OrderNumber
-	Status  OrderStatus
-	Balance float32
-	Date    time.Time
+	Order   OrderNumber `json:"order"`
+	Status  OrderStatus `json:"status"`
+	Balance float32     `json:"accrual,omitempty"`
+	Date    time.Time   `json:"uploaded_at"`
 }
 
 func NewOrderInfo(order string, balance float32, status string, date time.Time) *OrderInformation {
@@ -24,6 +24,7 @@ type AccrualInformation struct {
 	Order   OrderNumber
 	Status  OrderStatus
 	Accrual float32
+	Date    time.Time
 }
 
 type OrderStatus string
