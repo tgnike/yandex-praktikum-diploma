@@ -64,6 +64,11 @@ func (ph *PostOrderHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		if errors.Is(err, server.ErrOrderNumberFormat) {
+			http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+			return
+		}
+
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -94,10 +99,15 @@ func (gh *GetOrdersHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(orders) == 0 {
+		http.Error(w, "нет данных для ответа", http.StatusNoContent)
+		return
+	}
+
 	body, err := json.Marshal(orders)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

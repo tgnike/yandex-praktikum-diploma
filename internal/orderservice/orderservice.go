@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/tgnike/yandex-praktikum-diploma/internal/models"
+	"github.com/tgnike/yandex-praktikum-diploma/internal/server"
 )
 
 type OrderService struct {
@@ -37,7 +38,7 @@ func (os *OrderService) PostOrder(ctx context.Context, order string, user models
 	err := orderNumber.Check()
 
 	if err != nil {
-		return err
+		return server.ErrOrderNumberFormat
 	}
 
 	err = os.repository.CommitOrderNumber(ctx, orderNumber, models.NEW, user)
