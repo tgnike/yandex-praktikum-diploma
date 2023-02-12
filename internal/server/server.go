@@ -31,7 +31,7 @@ type Orders interface {
 type Balance interface {
 	GetBalance(ctx context.Context, user *models.UserID) (*models.Balance, error)
 	WithdrawRequest(ctx context.Context, withdrawal *models.WithdrawalRequest, user *models.UserID) error
-	Withdrawals(ctx context.Context, user *models.UserID) error
+	Withdrawals(ctx context.Context, user *models.UserID) ([]*models.Withdrawal, error)
 }
 
 func New(users Users, orders Orders, balance Balance) *Server {

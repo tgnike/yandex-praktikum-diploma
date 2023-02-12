@@ -14,6 +14,7 @@ type BalanceService struct {
 type BalanceRepository interface {
 	Withdraw(ctx context.Context, order *models.OrderNumber, sum float32, user *models.UserID) error
 	GetBalance(ctx context.Context, user *models.UserID) (*models.Balance, error)
+	Withdrawals(ctx context.Context, user *models.UserID) ([]*models.Withdrawal, error)
 }
 
 func New(repository BalanceRepository) *BalanceService {
@@ -34,7 +35,6 @@ func (bw *BalanceService) WithdrawRequest(ctx context.Context, withdrawal *model
 
 	return bw.repository.Withdraw(ctx, &withdrawal.Order, withdrawal.Sum, user)
 }
-func (bw *BalanceService) Withdrawals(ctx context.Context, user *models.UserID) error {
-	return nil
-
+func (bw *BalanceService) Withdrawals(ctx context.Context, user *models.UserID) ([]*models.Withdrawal, error) {
+	return bw.repository.Withdrawals(ctx, user)
 }

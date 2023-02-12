@@ -40,11 +40,11 @@ func NewRouter(server *server.Server) chi.Router {
 
 		r.With(AuthMiddleware(server.Users)).Route("/balance", func(r chi.Router) {
 			r.Post("/withdraw", handle(&balancehandlers.WithdrawRequestHandler{Service: server.Balance}))
-			r.Get("/", mockOk())
+			r.Get("/", handle(&balancehandlers.GetBalanceHandler{Service: server.Balance}))
 		})
 
 		r.With(AuthMiddleware(server.Users)).Route("/withdrawals", func(r chi.Router) {
-			r.Get("/", mockOk())
+			r.Get("/", handle(&balancehandlers.GetWithdrawalsHandler{Service: server.Balance}))
 		})
 
 	})
@@ -62,7 +62,7 @@ func AuthMiddleware(auth server.Users) func(http.Handler) http.Handler {
 			userID, err := auth.CheckAuthToken(words[len(words)-1])
 
 			if err != nil {
-				http.Error(w, "Invalid token", http.StatusForbidden)
+				http.Error(w, "Invalid token", http.StatusUnauthorized)
 				return
 			}
 

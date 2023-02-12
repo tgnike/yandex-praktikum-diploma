@@ -102,6 +102,29 @@ type GetWithdrawalsHandler struct {
 }
 
 func (gwh *GetWithdrawalsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	userID, ok := ctx.Value(server.UserContext).(models.UserID)
+	if !ok {
+		http.Error(w, errors.New("Unauthorized").Error(), http.StatusUnauthorized)
+		return
+	}
+
+	withdrawals, err := gwh.Service.Withdrawals(ctx, &userID)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	body, err := json.Marshal(withdrawals)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("it works! GetWithdrawalsHandler"))
+	w.Write(body)
 }

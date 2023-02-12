@@ -14,7 +14,7 @@ type DB interface {
 	Init()
 	// Close()
 	// Ping() error
-	GetBalance(ctx context.Context, user string) (*models.Balance, error)
+
 	// PostBalance(user string, balance float32)
 	// PostOrder(order string) error
 	// GetOrdersInformation() ([]string, error)
@@ -26,6 +26,8 @@ type DB interface {
 	GetUser(ctx context.Context, username string, password string) (string, error)
 	StoreUser(ctx context.Context, username string, password string) (string, error)
 
+	GetBalance(ctx context.Context, user string) (*models.Balance, error)
+	Withdrawals(ctx context.Context, user string) ([]*models.Withdrawal, error)
 	Withdraw(ctx context.Context, order string, sum float32, user string) error
 }
 
@@ -74,4 +76,6 @@ func (s *Storage) GetBalance(ctx context.Context, user *models.UserID) (*models.
 
 }
 
-func (s *Storage) SetBalance() {}
+func (s *Storage) Withdrawals(ctx context.Context, user *models.UserID) ([]*models.Withdrawal, error) {
+	return s.db.Withdrawals(ctx, string(*user))
+}
