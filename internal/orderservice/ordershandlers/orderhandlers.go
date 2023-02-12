@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -22,7 +23,8 @@ func (ph *PostOrderHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ct := r.Header.Get("Content-type")
 
 	if ct != "text/plain" {
-		http.Error(w, errors.New("Wrong content-type").Error(), http.StatusBadRequest)
+		http.Error(w, errors.New("wrong content-type").Error(), http.StatusBadRequest)
+		log.Print("post.order:wrong content-type")
 		return
 	}
 
@@ -31,6 +33,7 @@ func (ph *PostOrderHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf("post.order: %v", err)
 		return
 	}
 
@@ -38,6 +41,7 @@ func (ph *PostOrderHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if orderNumber == "" {
 		http.Error(w, errors.New("empty body").Error(), http.StatusBadRequest)
+		log.Print("empty body")
 		return
 	}
 
@@ -52,6 +56,8 @@ func (ph *PostOrderHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err = ph.Service.PostOrder(ctx, orderNumber, userID)
 
 	if err != nil {
+
+		log.Printf("post.order.service %v", err)
 
 		if errors.Is(err, server.ErrUploadedByOtherUser) {
 			http.Error(w, err.Error(), http.StatusConflict)
