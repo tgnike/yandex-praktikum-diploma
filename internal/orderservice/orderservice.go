@@ -48,8 +48,6 @@ func (os *OrderService) PostOrder(ctx context.Context, order string, user models
 	}
 
 	os.accruals.Check(orderNumber)
-	// TODO
-	//go os.checkWithTimeout(orderNumber)
 
 	return nil
 

@@ -1,9 +1,13 @@
 package balancehandlers
 
 import (
+	"encoding/json"
+	"errors"
+	"io"
 	"net/http"
 
 	"github.com/go-chi/chi"
+	"github.com/tgnike/yandex-praktikum-diploma/internal/models"
 	"github.com/tgnike/yandex-praktikum-diploma/internal/server"
 )
 
@@ -29,6 +33,43 @@ type WithdrawRequestHandler struct {
 }
 
 func (wt *WithdrawRequestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	userID, ok := ctx.Value(server.UserContext).(models.UserID)
+	if !ok {
+		http.Error(w, errors.New("Unauthorized").Error(), http.StatusUnauthorized)
+		return
+	}
+
+	body, err := io.ReadAll(r.Body)
+	defer r.Body.Close()
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	withdrawal := &models.WithdrawalRequest{}
+
+	if err := json.Unmarshal(body, &withdrawal); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = wt.Service.WithdrawRequest(ctx, withdrawal, &userID)
+
+	if err != nil {
+
+		if errors.Is(err, server.ErrOrderNumberFormat) {
+			http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+			return
+		}
+
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("it works! WithdrawRequestHandler"))
 }

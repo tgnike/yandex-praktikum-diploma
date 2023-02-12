@@ -55,6 +55,19 @@ func (s *Storage) Init() {
 		log.Panicf("postgres orders error %v", err)
 	}
 
+	// withdrawals
+	_, err = s.DB.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS withdrawals (
+		id int generated always as identity ( cache 10 ) primary key,
+		ordernumber varchar(20) not null 
+		, useruid varchar(36) not null
+		, sum float not null
+		, date TIMESTAMP WITH TIME ZONE
+	 )`)
+
+	if err != nil {
+		log.Panicf("postgres withdrawals error %v", err)
+	}
+
 	// err = s.loadMigrations()
 
 	// if errors.Is(err, migrate.ErrNoChange) {
@@ -211,6 +224,19 @@ func (s *Storage) GetUserOrders(ctx context.Context, userID string, orders model
 	}
 
 	err = rows.Err()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+func (s *Storage) Withdraw(ctx context.Context, order string, sum float32, user string) error {
+
+	sqlStatement := `INSERT INTO withdrawals (ordernumber, useruid, sum,date) VALUES ($1, $2, $3, $4)`
+	_, err := s.DB.Exec(ctx, sqlStatement, order, user, sum, time.Now())
 
 	if err != nil {
 		return err

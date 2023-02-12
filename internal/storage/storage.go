@@ -25,6 +25,8 @@ type DB interface {
 
 	GetUser(ctx context.Context, username string, password string) (string, error)
 	StoreUser(ctx context.Context, username string, password string) (string, error)
+
+	Withdraw(ctx context.Context, order string, sum float32, user string) error
 }
 
 const dbTimeout = 5
@@ -60,6 +62,10 @@ func (s *Storage) GetUserOrders(ctx context.Context, user string, orders models.
 
 func (s *Storage) UpdateOrder(ctx context.Context, order string, status string, balance float32) error {
 	return s.db.UpdateOrder(ctx, order, status, balance)
+}
+
+func (s *Storage) Withdraw(ctx context.Context, order *models.OrderNumber, sum float32, user *models.UserID) error {
+	return s.db.Withdraw(ctx, string(*order), sum, string(*user))
 }
 
 func (s *Storage) GetBalance() {}

@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/tgnike/yandex-praktikum-diploma/internal/authservice/authhandlers"
+	"github.com/tgnike/yandex-praktikum-diploma/internal/balanceservice/balancehandlers"
 	"github.com/tgnike/yandex-praktikum-diploma/internal/orderservice/ordershandlers"
 	"github.com/tgnike/yandex-praktikum-diploma/internal/server"
 )
@@ -38,7 +39,7 @@ func NewRouter(server *server.Server) chi.Router {
 		})
 
 		r.With(AuthMiddleware(server.Users)).Route("/balance", func(r chi.Router) {
-			r.Post("/withdraw", mockOk())
+			r.Post("/withdraw", handle(&balancehandlers.WithdrawRequestHandler{Service: server.Balance}))
 			r.Get("/", mockOk())
 		})
 
@@ -50,16 +51,6 @@ func NewRouter(server *server.Server) chi.Router {
 
 	return r
 }
-
-// func AuthMiddleware(next http.Handler) http.Handler {
-// 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-
-// 		token := r.Header.Get("Authorization")
-// 		log.Printf("auth token: %s", token)
-
-// 		next.ServeHTTP(rw, r)
-// 	})
-// }
 
 func AuthMiddleware(auth server.Users) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {

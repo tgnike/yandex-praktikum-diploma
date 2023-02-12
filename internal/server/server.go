@@ -30,7 +30,7 @@ type Orders interface {
 
 type Balance interface {
 	GetBalance(ctx context.Context) float32
-	WithdrawRequest(ctx context.Context) error
+	WithdrawRequest(ctx context.Context, withdrawal *models.WithdrawalRequest, user *models.UserID) error
 	Withdrawals(ctx context.Context) error
 }
 
