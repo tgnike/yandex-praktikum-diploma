@@ -103,7 +103,7 @@ func (s *Storage) GetOrder(ctx context.Context, orderNumber string, userID strin
 }
 
 func (s *Storage) GetUserOrders(ctx context.Context, userID string, orders models.OrderContainerInterface) error {
-	sqlStatement := `SELECT ordernumber, balance, status, date from orders where useruid = $1`
+	sqlStatement := `SELECT ordernumber, balance, status, date from orders where useruid = $1 ORDER BY date asc`
 	rows, err := s.DB.Query(ctx, sqlStatement, userID)
 
 	if err != nil {
