@@ -3,7 +3,6 @@ package orderservice
 import (
 	"context"
 	"log"
-	"time"
 
 	"github.com/tgnike/yandex-praktikum-diploma/internal/models"
 	"github.com/tgnike/yandex-praktikum-diploma/internal/server"
@@ -26,8 +25,8 @@ type OrderRepository interface {
 }
 
 type Accruals interface {
-	Register(order models.OrderNumber)
-	Check(order models.OrderNumber)
+	//Register(order models.OrderNumber)
+	Check(order *models.OrderNumber, user *models.UserID)
 	GetUpdates() chan *models.AccrualInformation
 }
 
@@ -47,17 +46,9 @@ func (os *OrderService) PostOrder(ctx context.Context, order string, user models
 		return err
 	}
 
-	os.accruals.Check(orderNumber)
+	os.accruals.Check(&orderNumber, &user)
 
 	return nil
-
-}
-
-func (os *OrderService) checkWithTimeout(order models.OrderNumber) {
-
-	timer := time.NewTimer(time.Duration(time.Second))
-	<-timer.C
-	os.accruals.Check(order)
 
 }
 

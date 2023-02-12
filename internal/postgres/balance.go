@@ -4,17 +4,73 @@ import (
 	"context"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/tgnike/yandex-praktikum-diploma/internal/models"
 )
 
-func (s *Storage) Withdraw(ctx context.Context, order string, sum float32, user string) error {
+func getBalance(ctx context.Context, tx pgx.Tx, user string) (float32, float32, error) {
 
-	sqlStatement := `INSERT INTO withdrawals (ordernumber, useruid, sum,date) VALUES ($1, $2, $3, $4)`
-	_, err := s.DB.Exec(ctx, sqlStatement, order, user, sum, time.Now())
+	sqlBalance := `SELECT accrual, withdrown FROM balance WHERE useruid=$1`
+	row := tx.QueryRow(ctx, sqlBalance, user)
+
+	var currentBalance float32
+	var withdrown float32
+
+	err := row.Scan(&currentBalance, &withdrown)
+
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return currentBalance, withdrown, nil
+
+}
+
+func updateBalance(ctx context.Context, tx pgx.Tx, user string, accrual float32, withdwown float32) error {
+
+	sqlBalanceUpdate := `INSERT INTO balance (useruid, accrual, withdrown) VALUES ( $1, $2, $3) 
+	ON CONFLICT (useruid) DO UPDATE
+	SET accrual = $2, withdrown = $3`
+	_, err := tx.Exec(ctx, sqlBalanceUpdate, user, accrual, withdwown)
 
 	if err != nil {
 		return err
 	}
+
+	return nil
+
+}
+
+func (s *Storage) Withdraw(ctx context.Context, order string, sum float32, user string) error {
+
+	tx, err := s.DB.BeginTx(ctx, TxDefOpts)
+
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback(ctx)
+
+	currentBalance, withdrown, err := getBalance(ctx, tx, user)
+
+	if err != nil {
+		return err
+	}
+
+	sqlWithdrawals := `INSERT INTO withdrawals (ordernumber, useruid, sum,date) VALUES ($1, $2, $3, $4)`
+	_, err = tx.Exec(ctx, sqlWithdrawals, order, user, sum, time.Now())
+
+	if err != nil {
+		return err
+	}
+
+	err = updateBalance(ctx, tx, user, currentBalance-sum, withdrown+sum)
+
+	if err != nil {
+		return err
+	}
+
+	tx.Commit(ctx)
 
 	return nil
 

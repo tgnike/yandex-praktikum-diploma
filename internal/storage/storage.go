@@ -21,7 +21,7 @@ type DB interface {
 	GetOrder(ctx context.Context, order string, userID string) error
 	GetUserOrders(ctx context.Context, userID string, orders models.OrderContainerInterface) error
 	CommitOrder(ctx context.Context, order string, status string, balance float32, userID string) error
-	UpdateOrder(ctx context.Context, order string, status string, balance float32) error
+	UpdateOrder(ctx context.Context, order string, status string, balance float32, userID string) error
 
 	GetUser(ctx context.Context, username string, password string) (string, error)
 	StoreUser(ctx context.Context, username string, password string) (string, error)
@@ -62,8 +62,8 @@ func (s *Storage) GetUserOrders(ctx context.Context, user string, orders models.
 
 }
 
-func (s *Storage) UpdateOrder(ctx context.Context, order string, status string, balance float32) error {
-	return s.db.UpdateOrder(ctx, order, status, balance)
+func (s *Storage) UpdateOrder(ctx context.Context, order string, status string, balance float32, user string) error {
+	return s.db.UpdateOrder(ctx, order, status, balance, user)
 }
 
 func (s *Storage) Withdraw(ctx context.Context, order *models.OrderNumber, sum float32, user *models.UserID) error {

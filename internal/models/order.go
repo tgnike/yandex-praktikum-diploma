@@ -25,6 +25,7 @@ type AccrualInformation struct {
 	Status  OrderStatus
 	Accrual float32
 	Date    time.Time
+	User    *UserID
 }
 
 type OrderStatus string

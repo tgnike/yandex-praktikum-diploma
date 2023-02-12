@@ -14,7 +14,7 @@ type Storage interface {
 	GetOrderByNumber(ctx context.Context, order string, userID string) error
 	CommitOrderNumber(ctx context.Context, order string, status string, balance float32, userID string) error
 	GetUserOrders(ctx context.Context, user string, orders models.OrderContainerInterface) error
-	UpdateOrder(ctx context.Context, order string, status string, balance float32) error
+	UpdateOrder(ctx context.Context, order string, status string, balance float32, user string) error
 }
 
 func New(storage Storage) *OrdersRepository {
@@ -44,5 +44,6 @@ func (r *OrdersRepository) GetUserOrders(ctx context.Context, user models.UserID
 }
 
 func (r *OrdersRepository) UpdateOrderAccruals(ctx context.Context, order *models.AccrualInformation) error {
-	return r.storage.UpdateOrder(ctx, string(order.Order), string(order.Status), order.Accrual)
+
+	return r.storage.UpdateOrder(ctx, string(order.Order), string(order.Status), order.Accrual, string(*order.User))
 }

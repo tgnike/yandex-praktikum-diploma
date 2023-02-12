@@ -64,15 +64,36 @@ func (s *Storage) CommitOrder(ctx context.Context, order string, status string, 
 
 }
 
-func (s *Storage) UpdateOrder(ctx context.Context, order string, status string, balance float32) error {
+func (s *Storage) UpdateOrder(ctx context.Context, order string, status string, balance float32, user string) error {
 
-	sqlStatement := `UPDATE orders set balance = $2, status= $3 WHERE ordernumber= $1 `
-	_, err := s.DB.Exec(ctx, sqlStatement, order, balance, status)
+	tx, err := s.DB.BeginTx(ctx, TxDefOpts)
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback(ctx)
+
+	currentBalance, withdrown, err := getBalance(ctx, tx, user)
+
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return err
+	}
+
+	sqlStatementOrder := `UPDATE orders set balance = $2, status= $3 WHERE ordernumber= $1 `
+	_, err = tx.Exec(ctx, sqlStatementOrder, order, balance, status)
 
 	if err != nil {
 		// TODO Добавить типы ошибок
 		return err
 	}
+
+	err = updateBalance(ctx, tx, user, currentBalance+balance, withdrown)
+
+	if err != nil {
+		return err
+	}
+
+	tx.Commit(ctx)
 
 	return nil
 
