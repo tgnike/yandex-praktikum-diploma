@@ -66,6 +66,7 @@ func (os *OrderService) GetOrdersInformation(ctx context.Context, user models.Us
 func (os *OrderService) UpdateAccrualInformation(ctx context.Context) {
 
 	ctxUpdate, cancelUpdate := context.WithCancel(ctx)
+	defer cancelUpdate()
 
 	go func(ctx context.Context, c chan *models.AccrualInformation) {
 		for {
@@ -84,13 +85,6 @@ func (os *OrderService) UpdateAccrualInformation(ctx context.Context) {
 		}
 	}(ctxUpdate, os.accruals.GetUpdates())
 
-	for {
-		select {
-		case <-ctx.Done():
-			cancelUpdate()
-			return
-		}
-
-	}
+	<-ctx.Done()
 
 }
