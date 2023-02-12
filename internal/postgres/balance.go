@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -100,6 +101,14 @@ func (s *Storage) Withdrawals(ctx context.Context, user string) ([]*models.Withd
 	rows, err := s.DB.Query(ctx, sqlStatement, user)
 
 	ws := make([]*models.Withdrawal, 0)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ws, nil
+		} else {
+			return nil, err
+		}
+	}
 
 	for rows.Next() {
 
