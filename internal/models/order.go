@@ -8,7 +8,7 @@ import (
 )
 
 type OrderInformation struct {
-	Order   OrderNumber `json:"order"`
+	Order   OrderNumber `json:"number"`
 	Status  OrderStatus `json:"status"`
 	Balance float32     `json:"accrual,omitempty"`
 	Date    time.Time   `json:"uploaded_at"`
