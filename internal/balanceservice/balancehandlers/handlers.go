@@ -44,6 +44,7 @@ func (gbh *GetBalanceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
 
@@ -125,6 +126,7 @@ func (gwh *GetWithdrawalsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
 }
