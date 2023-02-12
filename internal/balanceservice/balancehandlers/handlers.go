@@ -22,8 +22,30 @@ type GetBalanceHandler struct {
 
 func (gbh *GetBalanceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
+	ctx := r.Context()
+
+	userID, ok := ctx.Value(server.UserContext).(models.UserID)
+	if !ok {
+		http.Error(w, errors.New("Unauthorized").Error(), http.StatusUnauthorized)
+		return
+	}
+
+	balance, err := gbh.Service.GetBalance(ctx, &userID)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	body, err := json.Marshal(balance)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("it works!"))
+	w.Write(body)
 
 }
 
@@ -71,7 +93,7 @@ func (wt *WithdrawRequestHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("it works! WithdrawRequestHandler"))
+	w.Write([]byte(""))
 }
 
 type GetWithdrawalsHandler struct {

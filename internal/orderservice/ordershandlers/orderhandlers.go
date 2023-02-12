@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -110,8 +109,6 @@ func (gh *GetOrdersHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	log.Print(userID)
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)

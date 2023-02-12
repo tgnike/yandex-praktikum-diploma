@@ -20,11 +20,6 @@ func NewOrderInfo(order string, balance float32, status string, date time.Time) 
 
 }
 
-type WithdrawalRequest struct {
-	Order OrderNumber `json:"order"`
-	Sum   float32     `json:"sum"`
-}
-
 type AccrualInformation struct {
 	Order   OrderNumber
 	Status  OrderStatus

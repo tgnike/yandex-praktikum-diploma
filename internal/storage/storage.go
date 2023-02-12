@@ -14,7 +14,7 @@ type DB interface {
 	Init()
 	// Close()
 	// Ping() error
-	// GetBalance(user string)
+	GetBalance(ctx context.Context, user string) (*models.Balance, error)
 	// PostBalance(user string, balance float32)
 	// PostOrder(order string) error
 	// GetOrdersInformation() ([]string, error)
@@ -68,5 +68,10 @@ func (s *Storage) Withdraw(ctx context.Context, order *models.OrderNumber, sum f
 	return s.db.Withdraw(ctx, string(*order), sum, string(*user))
 }
 
-func (s *Storage) GetBalance() {}
+func (s *Storage) GetBalance(ctx context.Context, user *models.UserID) (*models.Balance, error) {
+
+	return s.db.GetBalance(ctx, string(*user))
+
+}
+
 func (s *Storage) SetBalance() {}
