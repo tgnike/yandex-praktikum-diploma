@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/v5"
 	"github.com/tgnike/yandex-praktikum-diploma/internal/models"
 	"github.com/tgnike/yandex-praktikum-diploma/internal/server"
 )
