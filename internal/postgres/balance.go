@@ -58,6 +58,10 @@ func (s *Storage) Withdraw(ctx context.Context, order string, sum float32, user 
 		return err
 	}
 
+	if sum > currentBalance {
+		return errors.New("not enough accruals")
+	}
+
 	sqlWithdrawals := `INSERT INTO withdrawals (ordernumber, useruid, sum,date) VALUES ($1, $2, $3, $4)`
 	_, err = tx.Exec(ctx, sqlWithdrawals, order, user, sum, time.Now())
 
